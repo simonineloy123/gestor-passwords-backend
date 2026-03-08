@@ -12,7 +12,7 @@ type CreatePasswordInput = {
 type UpdatePasswordInput = {
   service?: string;
   username?: string;
-  password?: string; // string porque guardamos JSON.stringify(encryptedPassword)
+  password?: string; 
   category?: string;
 };
 
@@ -21,7 +21,7 @@ export const createPasswordRecord = async (data: CreatePasswordInput) => {
     data: {
       service: data.service,
       username: data.username,
-      password: JSON.stringify(data.password), // El password ya viene cifrado
+      password: JSON.stringify(data.password), 
       category: data.category,
       user: {
         connect: { id: data.userId },
@@ -52,11 +52,10 @@ export const updatePasswordRecord = async (
 };
 
 export const deletePasswordRecord = async (recordId: string, userId: string) => {
-  // De forma similar, nos aseguramos de que el usuario sea el dueño.
   return await prisma.passwordRecord.delete({
     where: {
       id: recordId,
-      userId: userId, // Condición de seguridad
+      userId: userId, 
     },
   });
 };

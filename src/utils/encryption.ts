@@ -2,7 +2,7 @@ import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
-const IV_LENGTH = 16; // Para AES, esto es siempre 16
+const IV_LENGTH = 16; 
 const SALT_LENGTH = 16;
 const TAG_LENGTH = 16;
 
@@ -11,18 +11,16 @@ if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 32) {
 }
 
 export interface EncryptedData {
-  iv: string; // Initialization Vector
-  salt: string; // Salt for key derivation
-  tag: string; // Authentication tag
-  encrypted: string; // The encrypted data
+  iv: string; 
+  salt: string; 
+  tag: string; 
+  encrypted: string; 
 }
 
 export const encrypt = (text: string): EncryptedData => {
-  // Generamos un salt y un IV únicos para cada cifrado
   const salt = crypto.randomBytes(SALT_LENGTH);
   const iv = crypto.randomBytes(IV_LENGTH);
 
-  // Derivamos una clave única a partir de la clave maestra y el salt
   const key = crypto.pbkdf2Sync(ENCRYPTION_KEY, salt, 100000, 32, 'sha256');
 
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);

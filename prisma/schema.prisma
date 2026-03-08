@@ -16,11 +16,9 @@ model User {
   password      String
   createdAt     DateTime @default(now())
 
-  // Relación 1 a N con PasswordRecord
-  // Un usuario puede tener muchos registros de contraseña.
   passwordRecords PasswordRecord[]
 
-  @@map("users") // Mapea el modelo a la tabla "users" en la BD
+  @@map("users") 
 }
 
 model PasswordRecord {
@@ -32,10 +30,7 @@ model PasswordRecord {
   category  String   @default("Otros")
   createdAt DateTime @default(now())
 
-  // Relación N a 1 con User
-  // Muchos registros de contraseña pertenecen a un solo usuario.
-  // El campo 'userId' es la clave foránea.
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("password_records") // Mapea el modelo a la tabla "password_records"
+  @@map("password_records")
 }

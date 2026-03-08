@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { createPasswordRecord, getPasswordsByUserId, updatePasswordRecord, deletePasswordRecord } from '../services/password.service';
 import { encrypt, decrypt, EncryptedData } from '../utils/encryption';
-import { Request } from '../types/express.d'; // Usamos nuestro tipo extendido
+import { Request } from '../types/express.d';
 
 type PasswordRecordType = {
   id: string;
@@ -15,10 +15,8 @@ type PasswordRecordType = {
 
 const router = Router();
 
-// Aplicamos el middleware a todas las rutas de este router
 router.use(authMiddleware);
 
-// --- GET /passwords ---
 router.get('/passwords', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -38,7 +36,6 @@ router.get('/passwords', async (req: Request, res: Response) => {
       return { ...p, password: decrypt(encryptedData) };
     });
 
-
     res.json(decryptedPasswords);
   } catch (error) {
     console.error(error);
@@ -47,14 +44,11 @@ router.get('/passwords', async (req: Request, res: Response) => {
 });
 
 
-
-// --- POST /passwords ---
 router.post('/passwords', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { service, category, username, password } = req.body;
 
-    // Validaciones básicas
     if (!service || !username || !password) {
       return res.status(400).json({ message: 'Service, username, and password are required' });
     }
@@ -71,14 +65,16 @@ router.post('/passwords', async (req: Request, res: Response) => {
       category
     });
 
-    res.status(201).json(newPassword);
+    res.status(201).json({
+      ...newPassword,
+      password,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-// --- PUT /passwords/:id ---
 router.put('/passwords/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -96,19 +92,20 @@ router.put('/passwords/:id', async (req: Request, res: Response) => {
       username,
       password: JSON.stringify(encryptedPassword),
     });
-
-    res.json(updatedPassword);
-  } catch (error: any) {
-    // Prisma lanza un error si no encuentra el registro para actualizar
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'Password record not found or you do not have permission to edit it' });
+1
+    res.json({
+      ...updatedPassword,  
+      password,           
+    });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        return res.status(404).json({ message: 'Password record not found or you do not have permission to edit it' });
+      }
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
-    console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  });
 
-// --- DELETE /passwords/:id ---
 router.delete('/passwords/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -116,7 +113,7 @@ router.delete('/passwords/:id', async (req: Request, res: Response) => {
 
     await deletePasswordRecord(id, userId);
 
-    res.status(204).send(); // 204 No Content es estándar para eliminaciones exitosas
+    res.status(204).send(); 
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'Password record not found or you do not have permission to delete it' });

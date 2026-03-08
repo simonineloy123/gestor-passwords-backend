@@ -1,4 +1,3 @@
-// Este archivo extiende los tipos de Express para incluir `user` en el Request
 import { Request } from 'express';
 import { User } from '@prisma/client';
 

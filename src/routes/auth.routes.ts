@@ -5,7 +5,6 @@ import { generateToken, verifyToken } from '../utils/auth';
 
 const router = Router();
 
-// POST /auth/register
 router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -25,7 +24,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /auth/login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -47,7 +45,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /auth/me
 router.get('/me', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -56,7 +53,7 @@ router.get('/me', async (req, res) => {
     const token = authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Malformed token' });
 
-    const payload = verifyToken(token); // función que valida JWT
+    const payload = verifyToken(token);
     const user = await findUserById(payload.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 

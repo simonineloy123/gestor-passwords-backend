@@ -1,10 +1,9 @@
+import 'dotenv/config'; 
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import protectedRoutes from './routes/protected.routes';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,13 +15,10 @@ app.use(cors({
 
 app.use(express.json());
 
-// Rutas públicas
 app.use('/api/auth', authRoutes);
 
-// Rutas protegidas
 app.use('/api', protectedRoutes);
 
-// Ruta de prueba
 app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from the Express backend with Prisma!' });
 });
