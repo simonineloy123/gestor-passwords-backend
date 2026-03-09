@@ -1,10 +1,8 @@
-// src/middleware/auth.middleware.ts
 import { Response, NextFunction } from 'express';
 import { Request as CoreRequest } from 'express-serve-static-core';
 import { verifyToken } from '../utils/auth';
 import { User } from '@prisma/client';
 
-// Tipado de req con user
 export interface AuthRequest extends CoreRequest {
   user?: Pick<User, 'id' | 'email'>;
 }
@@ -20,7 +18,6 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   try {
     const decodedUser = verifyToken(token);
 
-    // Añadimos la info del usuario al request
     req.user = decodedUser;
 
     next();

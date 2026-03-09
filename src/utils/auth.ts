@@ -1,9 +1,6 @@
 
 import * as jwt from 'jsonwebtoken';
 
-//const SALT_ROUNDS = 10;
-
-
 export interface JWTPayload {
   id: string;
   email: string;

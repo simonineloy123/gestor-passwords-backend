@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth.middleware';
 import { createPasswordRecord, getPasswordsByUserId, updatePasswordRecord, deletePasswordRecord } from '../services/password.service';
 import { encrypt, decrypt, EncryptedData } from '../utils/encryption';
 import { Request } from '../types/express.d';
+import { validatePasswordRecord } from '../middleware/validation.middleware';
 
 type PasswordRecordType = {
   id: string;
@@ -10,6 +11,7 @@ type PasswordRecordType = {
   service: string;
   username: string;
   password: string;
+  category: string;
   createdAt: Date;
 };
 
@@ -33,7 +35,8 @@ router.get('/passwords', async (req: Request, res: Response) => {
         return { ...p, password: '' };
       }
 
-      return { ...p, password: decrypt(encryptedData) };
+      const { userId: _, ...rest } = p;
+      return { ...rest, password: decrypt(encryptedData) };
     });
 
     res.json(decryptedPasswords);
@@ -43,18 +46,10 @@ router.get('/passwords', async (req: Request, res: Response) => {
   }
 });
 
-
-router.post('/passwords', async (req: Request, res: Response) => {
+router.post('/passwords', validatePasswordRecord, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { service, category, username, password } = req.body;
-
-    if (!service || !username || !password) {
-      return res.status(400).json({ message: 'Service, username, and password are required' });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
-    }
 
     const encryptedPassword = encrypt(password);
     const newPassword = await createPasswordRecord({
@@ -62,27 +57,26 @@ router.post('/passwords', async (req: Request, res: Response) => {
       service,
       username,
       password: encryptedPassword,
-      category
+      category,
     });
 
-    res.status(201).json({
-      ...newPassword,
-      password,
-    });
+    const { userId: _, ...rest } = newPassword;
+    res.status(201).json({ ...rest, password });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.put('/passwords/:id', async (req: Request, res: Response) => {
+router.put('/passwords/:id', validatePasswordRecord, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { id } = req.params;
     const { service, category, username, password } = req.body;
 
-    if (!service || !username || !password) {
-      return res.status(400).json({ message: 'Service, username, and password are required' });
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ message: 'ID inválido' });
     }
 
     const encryptedPassword = encrypt(password);
@@ -92,31 +86,33 @@ router.put('/passwords/:id', async (req: Request, res: Response) => {
       username,
       password: JSON.stringify(encryptedPassword),
     });
-1
-    res.json({
-      ...updatedPassword,  
-      password,           
-    });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return res.status(404).json({ message: 'Password record not found or you do not have permission to edit it' });
-      }
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
+
+    const { userId: _, ...rest } = updatedPassword;
+    res.json({ ...rest, password });
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'Registro no encontrado o sin permisos' });
     }
-  });
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 router.delete('/passwords/:id', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { id } = req.params;
 
-    await deletePasswordRecord(id, userId);
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ message: 'ID inválido' });
+    }
 
-    res.status(204).send(); 
+    await deletePasswordRecord(id, userId);
+    res.status(204).send();
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ message: 'Password record not found or you do not have permission to delete it' });
+      return res.status(404).json({ message: 'Registro no encontrado o sin permisos' });
     }
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
