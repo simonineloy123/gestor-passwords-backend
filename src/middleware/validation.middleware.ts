@@ -54,20 +54,17 @@ export const validateLogin = [
 
 export const validatePasswordRecord = [
   body('service')
-    .trim()
     .notEmpty().withMessage('El servicio es requerido')
     .isLength({ max: 100 }).withMessage('El nombre del servicio es demasiado largo')
     .escape(),
 
   body('username')
-    .trim()
     .notEmpty().withMessage('El usuario es requerido')
     .isLength({ max: 254 }).withMessage('El usuario es demasiado largo')
     .escape(),
 
   body('password')
     .notEmpty().withMessage('La contraseña es requerida')
-    .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
     .isLength({ max: 256 }).withMessage('La contraseña es demasiado larga'),
 
   body('category')
@@ -78,6 +75,10 @@ export const validatePasswordRecord = [
       'Gubernamental', 'Trabajo', 'Finanzas',
       'Compras', 'Gaming', 'Salud', 'Otros'
     ]).withMessage('Categoría inválida'),
+
+  body('googleLogin')
+    .optional()
+    .isBoolean().withMessage('googleLogin debe ser un booleano'),
 
   handleValidationErrors,
 ];

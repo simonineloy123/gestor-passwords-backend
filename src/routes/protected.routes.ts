@@ -12,7 +12,9 @@ type PasswordRecordType = {
   username: string;
   password: string;
   category: string;
+  googleLogin: boolean;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 const router = Router();
@@ -49,7 +51,7 @@ router.get('/passwords', async (req: Request, res: Response) => {
 router.post('/passwords', validatePasswordRecord, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { service, category, username, password } = req.body;
+    const { service, category, username, password, googleLogin } = req.body;
 
     const encryptedPassword = encrypt(password);
     const newPassword = await createPasswordRecord({
@@ -58,6 +60,7 @@ router.post('/passwords', validatePasswordRecord, async (req: Request, res: Resp
       username,
       password: encryptedPassword,
       category,
+      googleLogin: googleLogin ?? false,
     });
 
     const { userId: _, ...rest } = newPassword;
@@ -72,7 +75,7 @@ router.put('/passwords/:id', validatePasswordRecord, async (req: Request, res: R
   try {
     const userId = req.user!.id;
     const { id } = req.params;
-    const { service, category, username, password } = req.body;
+    const { service, category, username, password, googleLogin } = req.body;
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(id)) {
@@ -85,6 +88,7 @@ router.put('/passwords/:id', validatePasswordRecord, async (req: Request, res: R
       category,
       username,
       password: JSON.stringify(encryptedPassword),
+      googleLogin: googleLogin ?? false,
     });
 
     const { userId: _, ...rest } = updatedPassword;

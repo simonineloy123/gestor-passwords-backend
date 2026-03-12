@@ -7,22 +7,28 @@ type CreatePasswordInput = {
   service: string;
   category: string;
   password: EncryptedData;
+  googleLogin: boolean;
 };
 
 type UpdatePasswordInput = {
   service?: string;
   username?: string;
-  password?: string; 
+  password?: string;
   category?: string;
+  googleLogin?: boolean;
 };
 
 export const createPasswordRecord = async (data: CreatePasswordInput) => {
+  const now = new Date();
   return await prisma.passwordRecord.create({
     data: {
       service: data.service,
       username: data.username,
-      password: JSON.stringify(data.password), 
+      password: JSON.stringify(data.password),
       category: data.category,
+      googleLogin: data.googleLogin,
+      createdAt: now,
+      updatedAt: now,
       user: {
         connect: { id: data.userId },
       },
@@ -33,7 +39,7 @@ export const createPasswordRecord = async (data: CreatePasswordInput) => {
 export const getPasswordsByUserId = async (userId: string) => {
   return await prisma.passwordRecord.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { updatedAt: 'desc' },
   });
 };
 
@@ -47,7 +53,10 @@ export const updatePasswordRecord = async (
       id: recordId,
       userId: userId,
     },
-    data,
+    data: {
+      ...data,
+      updatedAt: new Date(),
+    },
   });
 };
 
@@ -55,7 +64,7 @@ export const deletePasswordRecord = async (recordId: string, userId: string) => 
   return await prisma.passwordRecord.delete({
     where: {
       id: recordId,
-      userId: userId, 
+      userId: userId,
     },
   });
 };

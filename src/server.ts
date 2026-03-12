@@ -11,7 +11,6 @@ import { apiRateLimit } from './middleware/rate-limit.middleware';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Security Headers ──────────────────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -31,7 +30,6 @@ app.use(helmet({
   xssFilter: true,
 }));
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
   'https://pass-vault-manager.vercel.app',
@@ -52,31 +50,24 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ── Body Parsing con límite ───────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// ── HTTP Parameter Pollution ──────────────────────────────────────────────────
 app.use(hpp());
 
-// ── Rate Limiting Global ──────────────────────────────────────────────────────
 app.use('/api', apiRateLimit);
 
-// ── Rutas ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api', protectedRoutes);
 
-// ── Health check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// ── 404 ───────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ message: 'Ruta no encontrada' });
 });
 
-// ── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const isDev = process.env.NODE_ENV === 'development';
   console.error(`[ERROR] ${err.message}`);
